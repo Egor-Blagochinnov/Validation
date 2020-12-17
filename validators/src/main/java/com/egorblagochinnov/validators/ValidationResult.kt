@@ -14,7 +14,6 @@ open class ValidationResult(
          * **/
         val errorMessage: String? = null,
 ) {
-
     /**
      * Сложение результатов валидации
      * Аналог булевого ИЛИ
@@ -53,9 +52,6 @@ open class ValidationResult(
         return obtain(isValid, errorMessage)
     }
 
-    class Valid : ValidationResult(true)
-    class Invalid(errorMessage: String?) : ValidationResult(false, errorMessage)
-
     companion object {
         /**
          * Создание ValidationResult
@@ -68,10 +64,14 @@ open class ValidationResult(
          * **/
         fun obtain(isValid: Boolean, errorMessage: String?): ValidationResult {
             return if (isValid) {
-                Valid()
+                valid()
             } else {
-                Invalid(errorMessage)
+                invalid(errorMessage)
             }
         }
+
+        fun valid() = ValidationResult(true)
+
+        fun invalid(errorMessage: String?) = ValidationResult(false, errorMessage)
     }
 }
