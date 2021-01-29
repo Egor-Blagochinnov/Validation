@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="validators_required_field">Required field</string>
+    <string name="validators_max_text_length_exceeded">Exceeded maximum text length: %1$d</string>
+    <string name="validators_min_text_length_not_reached">Not reached to minimum text length: %1$d</string>
+    <string name="validators_text_length_should_be_in_range">Text length should be in range: %1$d - %2$d</string>
+    <string name="validators_text_length_must_be">Text length must be %1$d</string>
+</resources>
