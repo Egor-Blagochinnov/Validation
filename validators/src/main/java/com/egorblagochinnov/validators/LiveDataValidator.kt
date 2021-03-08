@@ -1,19 +1,22 @@
 package com.egorblagochinnov.validators
 
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.Observer
+import androidx.lifecycle.*
 
 /**
- * Валидатор для LiveData
- * Как только данные меняются проверяет их валидность по валидатору
+ * Валидатор LiveData
+ * Как только данные в [source] меняются - проверяет их валидность по валидатору
  *
- * На LiveDataValidator нужно подписаться как на любую другую LiveData.
- * После подписки LiveDataValidator начнет слушать источник
+ * - Активация
+ * Чтобы [LiveDataValidator] работал - ему, а точнее [mediator] необходим наблюдатель [Observer].
+ * То есть для того, чтобы активироать [LiveDataValidator] нужно подписаться на него. См. [observe], [observeForever]
+ * Или можно добавить [LiveDataValidator.state] в [MediatorLiveData], чтобы использовать жизненный цикл [MediatorLiveData]
  *
- * Наследуется MediatorLiveData<Boolean> и хранит результат последней проверки
- * Можно добавлять источники данных методом addSource(liveData)
+ * - Валидация
+ * Валидация происхрлит автоматическа при изменении [source]
+ *
+ * - Дополнительные источники
+ * Дополнительные источники нужны для того, чтобы реагировать на изменения других источников, кроме [source]
+ * См. [watchOn], [triggerOn]
  *
  * @param source - источник данных, за которым надо следить
  * @param initialCondition - Начальное условие. Необязательный параметр
@@ -23,6 +26,14 @@ open class LiveDataValidator<T>(
         initialCondition: Condition<T?>? = null
 ) : Validator<T?>(initialCondition) {
 
+    /**
+     * Главный компонент [LiveDataValidator]
+     * Отвечает за состояние валидатора
+     * Именно медиатор следит за источником [source] и валидирует каждое изменение источника
+     * Так же следит за набором условий валидатора [Validator.conditions]. Как только меняются условия - источник проверяется по новым условиям
+     *
+     * Тут же прослушиваются дополнительные источники см. [watchOn], [triggerOn]
+     * **/
     protected val mediator = MediatorLiveData<ValidationResult>().apply {
         addSource(source) { data ->
             validateAndUpdateState(data)
@@ -33,16 +44,31 @@ open class LiveDataValidator<T>(
         }
     }
 
-    val result: LiveData<ValidationResult>; get() = mediator
+    /**
+     * Немутабельный [mediator]
+     * Показывает текущее состояние [LiveDataValidator]
+     * **/
+    val state: LiveData<ValidationResult>; get() = mediator
 
+    /**
+     * Подписка на состояние валидатора [mediator]
+     * @see LiveData.observe
+     * **/
     fun observe(lifecycleOwner: LifecycleOwner, observer: Observer<in ValidationResult>) {
         mediator.observe(lifecycleOwner, observer)
     }
 
+    /**
+     * Вечная подписка на состояние валидатора [mediator]
+     * @see LiveData.observeForever
+     * **/
     fun observeForever(observer: Observer<in ValidationResult>) {
         mediator.observeForever(observer)
     }
 
+    /**
+     * @see LiveData.removeObserver
+     * **/
     fun removeObserver(observer: Observer<in ValidationResult>) {
         mediator.removeObserver(observer)
     }
@@ -137,7 +163,11 @@ open class LiveDataValidator<T>(
      * Подписывается на другие валидаторы и при срабатывании любого из них
      * вызывает [Mux.validate] чтобы поменять свое состояние
      *
-     * По-умолчанию Mux будет true если все его валидаторы true [Mux.defaultCheck]
+     * В отличии от [LiveDataValidator] не привязывается к одному источнику с одним типом данных,
+     * а следит за множеством источников с разными типами данных
+     *
+     * По-умолчанию Mux будет true если все его валидаторы true См. [Mux.defaultCheck]
+     * Чтобы валидировать как-то иначе - переопредели [validate]
      *
      * @param initialValidators - начальные валидаторы.
      * Не обязательно передавать в конструкторе, можно добавить их позже, но по одному через [Mux.addValidator]
@@ -156,7 +186,7 @@ open class LiveDataValidator<T>(
         /**
          * Состояние
          * **/
-        val result: LiveData<ValidationResult> = mediator
+        val state: LiveData<ValidationResult> = mediator
 
         /**
          * Набор валидаторов по которым нужно делать проверку
@@ -164,8 +194,14 @@ open class LiveDataValidator<T>(
         protected val validators: MutableSet<LiveDataValidator<*>> = LinkedHashSet<LiveDataValidator<*>>()
 
         init {
-            initialValidators?.let {
-                validators.addAll(initialValidators)
+            if (!initialValidators.isNullOrEmpty()) {
+                initialValidators.forEach {
+                    if (validators.add(it)) {
+                        mediator.addSource(it.state, this)
+                    }
+                }
+
+                check()
             }
         }
 
@@ -178,7 +214,7 @@ open class LiveDataValidator<T>(
          * **/
         fun addValidator(validator: LiveDataValidator<*>) {
             if (validators.add(validator)) {
-                mediator.addSource(validator.result, this)
+                mediator.addSource(validator.state, this)
                 check(validator.validate())
             }
         }
@@ -198,7 +234,7 @@ open class LiveDataValidator<T>(
          * **/
         fun removeValidator(validator: LiveDataValidator<*>) {
             if (validators.remove(validator)) {
-                mediator.removeSource(validator.result)
+                mediator.removeSource(validator.state)
                 check()
             }
         }
@@ -213,6 +249,14 @@ open class LiveDataValidator<T>(
             check(t)
         }
 
+        fun observe(lifecycleOwner: LifecycleOwner, observer: Observer<ValidationResult>) {
+            mediator.observe(lifecycleOwner, observer)
+        }
+
+        fun observeForever(observer: Observer<ValidationResult>) {
+            mediator.observeForever(observer)
+        }
+
         /**
          * Проверка
          * Изменяет состояние [mediator]
@@ -221,7 +265,8 @@ open class LiveDataValidator<T>(
          * @param lastValidationResult - результат срабатывания какого-то валидатора.
          * **/
         private fun check(lastValidationResult: ValidationResult? = null) {
-            mediator.value = validate(lastValidationResult, validators)
+            val results = validators.mapNotNull { it.state.value }
+            mediator.value = validate(lastValidationResult, results)
         }
 
         /**
@@ -229,43 +274,38 @@ open class LiveDataValidator<T>(
          * Изменяет состояние [mediator]
          * Сводится к вызову [validate] и получения из него нового состояния (результата [ValidationResult])
          *
+         * Важно в этом методе не вызывать LiveDataValidator.validate() ни у одного из валидаторов [validators]
+         * Это обновит состояния LiveDataValidator и соответственно у Mux сработает onChecked()
+         * Получится бесконечный цикл
+         *
          * @param lastValidationResult - Валидатор, который сработал. Точнее это его результат
-         * @param validators - все валидаторы
+         * @param allResults - Состояния (результаты) всех остальных валидаторов
          * **/
         protected open fun validate(
                 lastValidationResult: ValidationResult? = null,
-                validators: Set<LiveDataValidator<*>>
+                allResults: List<ValidationResult>
         ): ValidationResult {
-            return defaultCheck(lastValidationResult, validators)
+            return defaultCheck(lastValidationResult, allResults)
         }
 
         /**
          * Стандартная валидация
          *
          * @param lastValidationResult - Валидатор, который сработал. Точнее это его результат
-         * @param validators - все валидаторы
+         * @param allResults - Состояния (результаты) всех остальных валидаторов
          *
          * @return [ValidationResult] true если все валидаторы [validators] вернут true
          * @return [ValidationResult] false если хоть один валидатор вернет false
          * **/
         private fun defaultCheck(
                 lastValidationResult: ValidationResult?,
-                validators: Set<LiveDataValidator<*>>
+                allResults: List<ValidationResult>
         ): ValidationResult {
             if (lastValidationResult?.isValid == false) {
                 return lastValidationResult
             }
 
-            var invalidResult: ValidationResult? = null
-
-            validators.forEach {
-                val result = it.validate()
-
-                if (it.isValid()) {
-                    invalidResult = result
-                    return@forEach
-                }
-            }
+            val invalidResult = allResults.find { !it.isValid }
 
             return invalidResult?: ValidationResult(true)
         }
