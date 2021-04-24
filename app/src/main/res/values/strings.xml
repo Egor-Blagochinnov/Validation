@@ -1,3 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Validation</string>
+    <string name="validators_required_field" tools:override="true">Required field</string>
 </resources>
