@@ -2,6 +2,7 @@ package com.egorblagochinnov.validators
 
 import android.content.Context
 import androidx.annotation.StringRes
+import org.intellij.lang.annotations.RegExp
 
 /**
  * Шаблонные классы для создания условий ([Condition])
@@ -148,6 +149,20 @@ class Conditions {
 
         override fun validate(value: T?): ValidationResult {
             return if (value?.length ?: 0 == textLength) {
+                ValidationResult(true)
+            } else {
+                ValidationResult(false, errorText)
+            }
+        }
+    }
+
+    class RegEx<T: CharSequence?> (
+        private val regEx: Regex,
+        private val errorText: String? = "Text does not match given RegEx"
+    ): Condition<T> {
+        override fun validate(value: T?): ValidationResult {
+            val text = value ?: ""
+            return if (text.matches(regEx)) {
                 ValidationResult(true)
             } else {
                 ValidationResult(false, errorText)
