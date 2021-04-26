@@ -1,4 +1,4 @@
-package com.egorblagochinnov.validators
+package com.egorblagochinnov.validators.core
 
 import android.content.Context
 import androidx.annotation.StringRes
