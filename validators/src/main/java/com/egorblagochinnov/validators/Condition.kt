@@ -55,8 +55,8 @@ fun interface Condition<T> {
          * @param isValueValid - Функция проверки условия
          * **/
         inline fun <V> create(
-                errorMessage: String? = null,
-                crossinline isValueValid: (value: V?) -> Boolean
+            errorMessage: String? = null,
+            crossinline isValueValid: (value: V?) -> Boolean
         ): Condition<V?> = Condition<V?> { value ->
             if (isValueValid(value)) {
                 ValidationResult(true)
