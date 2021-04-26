@@ -1,18 +1,18 @@
-package com.egorblagochinnov.validators
+package com.egorblagochinnov.validators.core
 
 /**
  * Результат проверки
  * **/
 open class ValidationResult(
-        /**
-         * Првильно или неправильно
-         * **/
-        val isValid: Boolean,
+    /**
+     * Првильно или неправильно
+     * **/
+    val isValid: Boolean,
 
-        /**
-         * Сообщение об ошибке
-         * **/
-        val errorMessage: String? = null,
+    /**
+     * Сообщение об ошибке
+     * **/
+    val errorMessage: String? = null,
 ) {
     /**
      * Сложение результатов валидации
