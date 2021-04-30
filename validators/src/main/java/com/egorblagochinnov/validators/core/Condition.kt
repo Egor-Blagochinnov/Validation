@@ -3,16 +3,7 @@ package com.egorblagochinnov.validators.core
 import android.content.Context
 import androidx.annotation.StringRes
 
-/**
- * Условие проверки значения <T>
- * **/
 fun interface Condition<T> {
-    /**
-     * Метод проверки значения
-     *
-     * @param value значение, которое нужно проверить
-     * @return ValidationResult - результат проверки
-     * **/
     fun validate(value: T?): ValidationResult
 
     /**
@@ -48,12 +39,6 @@ fun interface Condition<T> {
             crossinline isValueValid: (value: V?) -> Boolean
         ): Condition<V?> = create(context.getString(description), isValueValid)
 
-        /**
-         * Создаёт экземпляр условия по переданным параметрам
-         *
-         * @param errorMessage - Описание ошибки
-         * @param isValueValid - Функция проверки условия
-         * **/
         inline fun <V> create(
             errorMessage: String? = null,
             crossinline isValueValid: (value: V?) -> Boolean
