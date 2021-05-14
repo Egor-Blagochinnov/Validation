@@ -44,9 +44,9 @@ fun interface Condition<T> {
             crossinline isValueValid: (value: V?) -> Boolean
         ): Condition<V?> = Condition<V?> { value ->
             if (isValueValid(value)) {
-                ValidationResult(true)
+                ValidationResult.valid()
             } else {
-                ValidationResult(false, errorMessage)
+                ValidationResult.invalid(errorMessage)
             }
         }
     }

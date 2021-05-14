@@ -1,9 +1,9 @@
 package com.egorblagochinnov.validators.core
 
-open class ValidationResult(
-    val isValid: Boolean,
-    val errorMessage: String? = null,
-) {
+interface ValidationResult {
+    val isValid: Boolean
+    val errorMessage: String?
+
     /**
      * Сложение результатов валидации
      * Аналог булевого ИЛИ
@@ -60,8 +60,31 @@ open class ValidationResult(
             }
         }
 
-        fun valid() = ValidationResult(true)
+        fun create(isValid: Boolean, errorMessage: String? = null): ValidationResult {
+            return object : ValidationResult {
+                override val isValid: Boolean
+                    get() = isValid
+                override val errorMessage: String?
+                    get() = errorMessage
+            }
+        }
 
-        fun invalid(errorMessage: String?) = ValidationResult(false, errorMessage)
+        fun valid(): ValidationResult {
+            return object : ValidationResult {
+                override val isValid: Boolean
+                    get() = true
+                override val errorMessage: String?
+                    get() = null
+            }
+        }
+
+        fun invalid(errorMessage: String?): ValidationResult {
+            return object : ValidationResult {
+                override val isValid: Boolean
+                    get() = false
+                override val errorMessage: String?
+                    get() = errorMessage
+            }
+        }
     }
 }

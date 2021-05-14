@@ -2,7 +2,8 @@ package com.egorblagochinnov.validators
 
 import android.content.Context
 import androidx.annotation.StringRes
-import org.intellij.lang.annotations.RegExp
+import com.egorblagochinnov.validators.core.Condition
+import com.egorblagochinnov.validators.core.ValidationResult
 
 /**
  * Шаблонные классы для создания условий ([Condition])
@@ -16,13 +17,13 @@ class Conditions {
      * @param description - Описание условия
      * **/
     class NotNull<T>(private val errorText: String? = "Value should not be null") : Condition<T?> {
-        constructor(context: Context, @StringRes errorText: Int): this(context.getString(errorText))
+        constructor(context: Context, @StringRes errorText: Int) : this(context.getString(errorText))
 
         override fun validate(value: T?): ValidationResult {
             return if (value != null) {
-                ValidationResult(true, null)
+                ValidationResult.create(true, null)
             } else {
-                ValidationResult(false, errorText)
+                ValidationResult.create(false, errorText)
             }
         }
     }
@@ -33,20 +34,24 @@ class Conditions {
      * false - Поле пустое, null или содержит только пробелы
      * **/
     class RequiredField<T : CharSequence>(private val errorText: String? = "Required field") : Condition<T?> {
-        constructor(context: Context, @StringRes errorText: Int = R.string.validators_required_field): this(context.getString(errorText))
+        constructor(
+            context: Context,
+            @StringRes errorText: Int = R.string.validators_required_field
+        ) : this(context.getString(errorText))
 
         override fun validate(value: T?): ValidationResult {
             return if (!value.isNullOrBlank()) {
-                ValidationResult(true)
+                ValidationResult.create(true)
             } else {
-                ValidationResult(false, errorText)
+                ValidationResult.create(false, errorText)
             }
         }
     }
 
     class TextMaxLength<T : CharSequence>(
         val maxLength: Int,
-        private val errorText: String? = "Exceeded maximum text length: $maxLength") : Condition<T?> {
+        private val errorText: String? = "Exceeded maximum text length: $maxLength"
+    ) : Condition<T?> {
 
         constructor(
             maxLength: Int,
@@ -66,14 +71,15 @@ class Conditions {
             return if ((value?.length ?: 0) <= maxLength) {
                 ValidationResult.valid()
             } else {
-                ValidationResult(false, errorText)
+                ValidationResult.create(false, errorText)
             }
         }
     }
 
     class TextMinLength<T : CharSequence>(
         val minLength: Int,
-        private val errorText: String? = "Not reached to minimum text length: $minLength") : Condition<T?> {
+        private val errorText: String? = "Not reached to minimum text length: $minLength"
+    ) : Condition<T?> {
 
         constructor(
             minLength: Int,
@@ -93,7 +99,7 @@ class Conditions {
             return if ((value?.length ?: 0) >= minLength) {
                 ValidationResult.valid()
             } else {
-                ValidationResult(false, errorText)
+                ValidationResult.create(false, errorText)
             }
         }
     }
@@ -108,7 +114,11 @@ class Conditions {
             context: Context
         ) : this(
             textLengthRange,
-            context.getString(R.string.validators_text_length_should_be_in_range, textLengthRange.first, textLengthRange.last)
+            context.getString(
+                R.string.validators_text_length_should_be_in_range,
+                textLengthRange.first,
+                textLengthRange.last
+            )
         )
 
         constructor(
@@ -121,9 +131,9 @@ class Conditions {
             val textLength = (value?.length ?: 0)
 
             return if (textLengthRange.contains(textLength)) {
-                ValidationResult(true)
+                ValidationResult.create(true)
             } else {
-                ValidationResult(false, errorText)
+                ValidationResult.create(false, errorText)
             }
         }
     }
@@ -149,23 +159,23 @@ class Conditions {
 
         override fun validate(value: T?): ValidationResult {
             return if (value?.length ?: 0 == textLength) {
-                ValidationResult(true)
+                ValidationResult.create(true)
             } else {
-                ValidationResult(false, errorText)
+                ValidationResult.create(false, errorText)
             }
         }
     }
 
-    class RegEx<T: CharSequence?> (
+    class RegEx<T : CharSequence?>(
         private val regEx: Regex,
         private val errorText: String? = "Text does not match given RegEx"
-    ): Condition<T> {
+    ) : Condition<T> {
         override fun validate(value: T?): ValidationResult {
             val text = value ?: ""
             return if (text.matches(regEx)) {
-                ValidationResult(true)
+                ValidationResult.create(true)
             } else {
-                ValidationResult(false, errorText)
+                ValidationResult.create(false, errorText)
             }
         }
     }
