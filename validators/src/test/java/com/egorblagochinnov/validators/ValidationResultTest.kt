@@ -1,5 +1,6 @@
 package com.egorblagochinnov.validators
 
+import com.egorblagochinnov.validators.core.ValidationResult
 import org.junit.Test
 import org.junit.Assert.*
 
@@ -19,8 +20,8 @@ class ValidationResultTest {
      * **/
     @Test
     fun plus_true_true() {
-        val resultTrue1 = ValidationResult(true, "false error1")
-        val resultTrue2 = ValidationResult(true, "false error2")
+        val resultTrue1 = ValidationResult.create(true, "false error1")
+        val resultTrue2 = ValidationResult.create(true, "false error2")
         val plus = resultTrue1 + resultTrue2
         val plusReversed = resultTrue2 + resultTrue1
 
@@ -39,8 +40,8 @@ class ValidationResultTest {
      * **/
     @Test
     fun plus_true_false() {
-        val resultTrue = ValidationResult(true)
-        val resultFalse = ValidationResult(false, "error")
+        val resultTrue = ValidationResult.create(true)
+        val resultFalse = ValidationResult.create(false, "error")
         val plus = resultTrue + resultFalse
         val plusReversed = resultFalse + resultTrue
 
@@ -59,8 +60,8 @@ class ValidationResultTest {
      * **/
     @Test
     fun plus_false_false() {
-        val resultFalse1 = ValidationResult(false, "error1")
-        val resultFalse2 = ValidationResult(false, "error2")
+        val resultFalse1 = ValidationResult.create(false, "error1")
+        val resultFalse2 = ValidationResult.create(false, "error2")
         val plus = resultFalse1 + resultFalse2
         val plusReversed = resultFalse2 + resultFalse1
 
@@ -85,8 +86,8 @@ class ValidationResultTest {
      * **/
     @Test
     fun times_true_true() {
-        val resultTrue1 = ValidationResult(true, "false error1")
-        val resultTrue2 = ValidationResult(true, "false error2")
+        val resultTrue1 = ValidationResult.create(true, "false error1")
+        val resultTrue2 = ValidationResult.create(true, "false error2")
         val times = resultTrue1 * resultTrue2
         val timesReversed = resultTrue2 * resultTrue1
 
@@ -105,8 +106,8 @@ class ValidationResultTest {
      * **/
     @Test
     fun times_true_false() {
-        val resultTrue = ValidationResult(true, "false error")
-        val resultFalse = ValidationResult(false, "true error")
+        val resultTrue = ValidationResult.create(true, "false error")
+        val resultFalse = ValidationResult.create(false, "true error")
         val times = resultTrue * resultFalse
         val timesReversed = resultFalse * resultTrue
 
@@ -125,8 +126,8 @@ class ValidationResultTest {
      * **/
     @Test
     fun times_false_false() {
-        val resultFalse1 = ValidationResult(false, "error1")
-        val resultFalse2 = ValidationResult(false, "error2")
+        val resultFalse1 = ValidationResult.create(false, "error1")
+        val resultFalse2 = ValidationResult.create(false, "error2")
         val times12 = resultFalse1 * resultFalse2
         val times21 = resultFalse2 * resultFalse1
 

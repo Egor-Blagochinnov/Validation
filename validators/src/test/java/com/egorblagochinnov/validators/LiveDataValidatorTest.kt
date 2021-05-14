@@ -3,6 +3,8 @@ package com.egorblagochinnov.validators
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import com.egorblagochinnov.validators.core.Condition
+import com.egorblagochinnov.validators.core.ValidationResult
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -151,7 +153,7 @@ class LiveDataValidatorTest {
         val source1 = MutableLiveData<String?>()
         val source2 = MutableLiveData<String?>()
 
-        validator.trackSources(source1, source1) {
+        validator.watchOn(source1, source1) {
             when(state) {
                 "INIT" -> { }
                 "SOURCE_1_CHANGED" -> {
@@ -195,7 +197,7 @@ class LiveDataValidatorTest {
     fun trigger() {
         val validator = LiveDataValidator(source)
 
-        validator.trigger()
+        validator.validate()
 
     }
 }

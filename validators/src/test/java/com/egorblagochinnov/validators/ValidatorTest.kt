@@ -1,7 +1,7 @@
 package com.egorblagochinnov.validators
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
+import com.egorblagochinnov.validators.core.Condition
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -95,10 +95,10 @@ class ValidatorTest {
             addCondition(zCondition)
         }
 
-        assertEquals(validator.conditionsSet()?.size, 3)
-        assertTrue(validator.conditionsSet()?.contains(xCondition) == true)
-        assertTrue(validator.conditionsSet()?.contains(yCondition) == true)
-        assertTrue(validator.conditionsSet()?.contains(zCondition) == true)
+        assertEquals(validator.getConditionsSet()?.size, 3)
+        assertTrue(validator.getConditionsSet()?.contains(xCondition) == true)
+        assertTrue(validator.getConditionsSet()?.contains(yCondition) == true)
+        assertTrue(validator.getConditionsSet()?.contains(zCondition) == true)
     }
 
     @Test
@@ -109,7 +109,7 @@ class ValidatorTest {
             addCondition(zCondition)
         }
 
-        assertNotNull(validator.conditions())
+        assertNotNull(validator.getConditionsSet())
     }
 
     @Test
@@ -117,17 +117,17 @@ class ValidatorTest {
         val validator = Validator<String?>()
 
         validator.addCondition(xCondition)
-        assertTrue(validator.conditionsSet()?.size == 1)
+        assertTrue(validator.getConditionsSet()?.size == 1)
         assertTrue(validator.validate("1234x").isValid)
         assertFalse(validator.validate("1234").isValid)
 
         validator.addCondition(yCondition)
-        assertTrue(validator.conditionsSet()?.size == 2)
+        assertTrue(validator.getConditionsSet()?.size == 2)
         assertTrue(validator.validate("1234yx").isValid)
         assertFalse(validator.validate("1234x").isValid)
 
         validator.addCondition(zCondition)
-        assertTrue(validator.conditionsSet()?.size == 3)
+        assertTrue(validator.getConditionsSet()?.size == 3)
         assertTrue(validator.validate("1z234zyx").isValid)
         assertFalse(validator.validate("1234yx").isValid)
     }
@@ -142,17 +142,17 @@ class ValidatorTest {
 
         validator.removeCondition(xCondition)
 
-        assertTrue(validator.conditionsSet()?.size == 2)
+        assertTrue(validator.getConditionsSet()?.size == 2)
         assertTrue(validator.validate("1234yz").isValid)
 
         validator.removeCondition(yCondition)
 
-        assertTrue(validator.conditionsSet()?.size == 1)
+        assertTrue(validator.getConditionsSet()?.size == 1)
         assertTrue(validator.validate("1234z").isValid)
 
         validator.removeCondition(zCondition)
 
-        assertTrue(validator.conditionsSet()?.size == 0)
+        assertTrue(validator.getConditionsSet()?.size == 0)
         assertTrue(validator.validate("1234").isValid)
     }
 
@@ -168,52 +168,54 @@ class ValidatorTest {
             remove(xCondition)
         }
 
-        assertTrue(validator.conditionsSet()?.size == 2)
-        assertTrue(validator.conditionsSet()?.contains(xCondition) == false)
+        assertTrue(validator.getConditionsSet()?.size == 2)
+        assertTrue(validator.getConditionsSet()?.contains(xCondition) == false)
 
         validator.changeConditionsSet {
             add(xCondition)
         }
 
-        assertTrue(validator.conditionsSet()?.size == 3)
-        assertTrue(validator.conditionsSet()?.contains(xCondition) == true)
+        assertTrue(validator.getConditionsSet()?.size == 3)
+        assertTrue(validator.getConditionsSet()?.contains(xCondition) == true)
 
         validator.changeConditionsSet {
             remove(xCondition)
             remove(zCondition)
         }
 
-        assertTrue(validator.conditionsSet()?.size == 1)
-        assertTrue(validator.conditionsSet()?.contains(xCondition) == false)
-        assertTrue(validator.conditionsSet()?.contains(yCondition) == true)
-        assertTrue(validator.conditionsSet()?.contains(zCondition) == false)
+        assertTrue(validator.getConditionsSet()?.size == 1)
+        assertTrue(validator.getConditionsSet()?.contains(xCondition) == false)
+        assertTrue(validator.getConditionsSet()?.contains(yCondition) == true)
+        assertTrue(validator.getConditionsSet()?.contains(zCondition) == false)
     }
 
     @Test
     fun changeConditionsSet_observer_test() {
         var state: String = "INIT"
 
-        val observer = Observer<Set<Condition<String?>>> {
-            if (state == "INIT") { return@Observer }
+        val observer = object : Validator.OnConditionsChangedListener<String?> {
+            override fun onConditionsChanged(conditions: Set<Condition<String?>>) {
+                if (state == "INIT") { return }
 
-            if (state == "X_REMOVED") {
-                assertEquals(it?.size?:0, 2)
-                assertTrue(it?.contains(xCondition) == false)
-                return@Observer
-            }
+                if (state == "X_REMOVED") {
+                    assertEquals(conditions?.size?:0, 2)
+                    assertTrue(conditions?.contains(xCondition) == false)
+                    return
+                }
 
-            if (state == "X_AND_Y_REMOVED") {
-                assertEquals(it?.size?:0, 1)
-                assertTrue(it?.contains(yCondition) == false)
-                return@Observer
-            }
+                if (state == "X_AND_Y_REMOVED") {
+                    assertEquals(conditions?.size?:0, 1)
+                    assertTrue(conditions?.contains(yCondition) == false)
+                    return
+                }
 
-            if (state == "Z_REMOVED_ADD_X_Y") {
-                assertEquals(it?.size?:0, 2)
-                assertTrue(it?.contains(zCondition) == false)
-                assertTrue(it?.contains(xCondition) == true)
-                assertTrue(it?.contains(yCondition) == true)
-                return@Observer
+                if (state == "Z_REMOVED_ADD_X_Y") {
+                    assertEquals(conditions?.size?:0, 2)
+                    assertTrue(conditions?.contains(zCondition) == false)
+                    assertTrue(conditions?.contains(xCondition) == true)
+                    assertTrue(conditions?.contains(yCondition) == true)
+                    return
+                }
             }
         }
 
@@ -222,7 +224,7 @@ class ValidatorTest {
             addCondition(yCondition)
             addCondition(zCondition)
 
-            conditions().observeForever(observer)
+            addConditionsChangedListener(observer)
         }
 
         state = "X_REMOVED"
@@ -242,6 +244,6 @@ class ValidatorTest {
             add(yCondition)
         }
 
-        validator.conditions().removeObserver(observer)
+        validator.removeConditionsChangedListener(observer)
     }
 }
