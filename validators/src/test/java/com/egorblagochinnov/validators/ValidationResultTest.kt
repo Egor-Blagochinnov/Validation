@@ -1,11 +1,9 @@
 package com.egorblagochinnov.validators
 
-import com.egorblagochinnov.validators.core.ValidationResult
 import org.junit.Test
 import org.junit.Assert.*
 
 class ValidationResultTest {
-
     @Test
     fun plus() {
         plus_true_true()

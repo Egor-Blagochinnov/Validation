@@ -3,8 +3,6 @@ package com.egorblagochinnov.validators
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import com.egorblagochinnov.validators.core.Condition
-import com.egorblagochinnov.validators.core.ValidationResult
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
@@ -45,7 +43,7 @@ class LiveDataValidatorMuxTest {
 
     }
 
-    private val mux = LiveDataValidator.Mux()
+    private val mux = MuxLiveDataValidator()
 
     @Before
     fun setup() {

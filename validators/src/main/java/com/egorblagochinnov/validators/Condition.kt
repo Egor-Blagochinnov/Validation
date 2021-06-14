@@ -1,4 +1,4 @@
-package com.egorblagochinnov.validators.core
+package com.egorblagochinnov.validators
 
 import android.content.Context
 import androidx.annotation.StringRes
@@ -7,11 +7,10 @@ fun interface Condition<T> {
     fun validate(value: T?): ValidationResult
 
     /**
-     * Сложение условий
-     * Аналог булевого ИЛИ
+     * Addition of conditions
+     * Boolean OR analog
      *
-     * Например:
-     * Condition { длина строки == 5 } + Condition { длина строки == 10 } = Condition { длина строки == 5 ИЛИ 10 }
+     * @see ValidationResult.plus
      * **/
     operator fun plus(condition: Condition<T>): Condition<T> {
         return Condition { value ->
@@ -20,11 +19,10 @@ fun interface Condition<T> {
     }
 
     /**
-     * Умножение условий
-     * Аналог булевого И
+     * Multiplication of validation results
+     * Boolean AND analogue
      *
-     * Например:
-     * Condition { строка должна содержать символ "а" } * Condition { строка должна содержать символ "b" } = Condition { строка должна содержать символы "а" и "b" }
+     * @see ValidationResult.times
      * **/
     operator fun times(condition: Condition<T>): Condition<T> {
         return Condition { value ->
@@ -48,6 +46,10 @@ fun interface Condition<T> {
             } else {
                 ValidationResult.invalid(errorMessage)
             }
+        }
+
+        fun <T> Condition<T>.isValid(value: T): Boolean {
+            return this.validate(value).isValid
         }
     }
 }

@@ -1,15 +1,15 @@
 package com.egorblagochinnov.validators
 
+import android.view.View
 import android.widget.TextView
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.egorblagochinnov.validators.viewbinders.LiveDataValidatorViewBinder
+import com.egorblagochinnov.validators.viewbinders.TextConditionViewBinder
+import com.egorblagochinnov.validators.viewbinders.TextViewLiveDataValidatorBinder
 import java.lang.ref.WeakReference
-
-fun <T> Condition<T>.isValid(value: T): Boolean {
-    return this.validate(value).isValid
-}
 
 fun TextView.textChanges(): LiveData<String?> {
     val result = MutableLiveData<String?>()
@@ -22,21 +22,21 @@ fun TextView.textChanges(): LiveData<String?> {
 }
 
 /**
- * Подключает валидатор [TextViewValidatorObserver] к [TextView]
+ * Подключает валидатор [TextViewLiveDataValidatorBinder] к [TextView]
  * Подписывается на валидатор (активирует его)
  * Следит за фокусом [TextView]
  *
  * @param lifecycleOwner - [LifecycleOwner] Нужен для подписки на валидатор [LiveDataValidator]
  * @param validator - Валидатор, по которому проверяется поле
  *
- * @return готовый [TextViewValidatorObserver]
+ * @return готовый [TextViewLiveDataValidatorBinder]
  * **/
 fun <D> TextView.validateBy(
         lifecycleOwner: LifecycleOwner,
-        validator: LiveDataValidator<D>
-): TextViewValidatorObserver<D> {
-    val viewValidator = TextViewValidatorObserver(WeakReference(this), validator)
-    viewValidator.activate(lifecycleOwner)
+        validator: LiveDataValidator<D?>
+): TextViewLiveDataValidatorBinder<D> {
+    val viewValidator = TextViewLiveDataValidatorBinder(WeakReference(this), validator)
+    viewValidator.attach(lifecycleOwner)
     viewValidator.setAsFocusListener()
     return viewValidator
 }
@@ -44,24 +44,31 @@ fun <D> TextView.validateBy(
 /**
  * Создаёт условие проверки и подключает его к [TextView]
  *
- * @return готовый [TextViewValidator]
+ * @return готовый [TextConditionViewBinder]
  * **/
 fun TextView.validateBy(
     errorMessage: String,
     isValueValid: (value: CharSequence?) -> Boolean
-): TextViewValidator<TextView> {
+): TextConditionViewBinder<TextView> {
     return validateBy(Condition.create(errorMessage, isValueValid))
 }
 
 /**
  * Подключает условие валидности к [TextView]
  *
- * @return готовый [TextViewValidator]
+ * @return готовый [TextConditionViewBinder]
  * **/
 fun TextView.validateBy(
     condition: Condition<CharSequence?>
-): TextViewValidator<TextView> {
-    val viewValidator = TextViewValidator(WeakReference(this), condition)
+): TextConditionViewBinder<TextView> {
+    val viewValidator = TextConditionViewBinder(WeakReference(this), condition)
     viewValidator.activate()
     return viewValidator
+}
+
+fun <V : View, D> V.validateBy(
+    validator: LiveDataValidator<D?>,
+    onValidationResult: (view: V?, result: ValidationResult?) -> Unit
+): LiveDataValidatorViewBinder<V, D> {
+    return LiveDataValidatorViewBinder.create(this, validator, onValidationResult)
 }

@@ -1,14 +1,17 @@
 package com.egorblagochinnov.validators
 
-import com.egorblagochinnov.validators.core.Condition
-import com.egorblagochinnov.validators.core.ValidationResult
-import kotlin.collections.HashSet
-
 /**
- * Проверяет значение <T> по множеству условий
+ * Validate the value of <T> against multiple conditions
  *
- * @param initialCondition - Начальное условие.
- * @param operator - Оператор, который определяет результат валидации
+ * When [Validator] is triggered ([validate])
+ * value [T] checking against all conditions ([conditions]) then
+ * all results of validation are passed to operator ([Operator]) which decides the final result ([ValidationResult])
+ *
+ * @param initialCondition - Initial condition
+ * @param operator - An operator that defines the result of the validation.
+ *
+ * @see Condition
+ * @see Operator
  * **/
 open class Validator<T>(
     initialCondition: Condition<T?>? = null,
@@ -29,7 +32,17 @@ open class Validator<T>(
 
     fun setOperator(operator: Operator) {
         this.operator = operator
-        onOperatorChangedListeners.forEach { it.onOperatorChanged() }
+        dispatchOnOperatorChanged()
+    }
+
+    fun getOperator(): Operator {
+        return operator
+    }
+
+    private fun dispatchOnOperatorChanged() {
+        onOperatorChangedListeners.forEach {
+            it.onOperatorChanged()
+        }
     }
 
     fun addOperatorChangedListener(listener: OnOperatorChangedListener) {
@@ -49,13 +62,13 @@ open class Validator<T>(
     }
 
     /**
-     * Проверка валидности
+     * Launches validation
      *
-     * Пропускает значение через все валидаторы
-     * Полученный список результатов передает оператору
-     * Оператор определяет общий результат
+     * 1) Check value against all validators
+     * 2) The resulting list of results is passing to the operator
+     * 3) The operator determines the overall result
      *
-     * @param value - проверяемое значение
+     * @param value - checking value
      * **/
     override fun validate(value: T?): ValidationResult {
         val validationResults = conditions.map { it.validate(value) }.toSet()
@@ -83,67 +96,62 @@ open class Validator<T>(
     }
 
     /**
-     * Изменяет список условий и оповещает слушателей об этом
+     * Modifies the list of conditions and notifies listeners about it
      *
-     * @param block - Преобразование, которое надо сделать с условиями
+     * @param block - Transformation to be applied to [conditions]
      * **/
     fun changeConditionsSet(block: MutableSet<Condition<T?>>.() -> Unit) {
-        /* Делаем мутабельный Set из того, что есть сейчас */
-        val currentConditionsSet = HashSet<Condition<T?>>().apply {
-            addAll(conditions)
-        }
+        conditions.apply(block)
+        dispatchConditions()
+    }
 
-        /* Применяем преобразования */
-        val newConditionsSet = currentConditionsSet.apply(block)
-
-        /* Устанавливаем новые условия и оповещаем слушателей */
-        dispatchConditions(newConditionsSet)
+    private fun dispatchConditions() {
+        dispatchConditions(conditions)
     }
 
     /**
-     * Меняет список условий
-     * Оповещает слушателей
+     * Оповещает слушателей [onConditionsChangedListeners]
      * **/
     private fun dispatchConditions(newConditionsSet: MutableSet<Condition<T?>>) {
-        conditions.clear()
-        conditions.addAll(newConditionsSet)
-        onConditionsChangedListeners.forEach { it.onConditionsChanged(conditions) }
+        onConditionsChangedListeners.forEach {
+            it.onConditionsChanged(newConditionsSet)
+        }
     }
 
     /**
-     * Оператор
-     * Проверяет набор результатов валидации и по этому набору возвращает один результат
+     * Operator
+     * Checks a set of validation results and returns one result for this set
      * **/
-    fun interface Operator : Condition<Set<ValidationResult>> {
+    fun interface Operator : Condition<Collection<ValidationResult>> {
         /**
-         * Оператор конъюнкция
+         * Conjunction operator
          *
-         * @return [ValidationResult](true) - Если невалидных условий нет; Условий нет вообще
-         * @return [ValidationResult](false) - Если нашелся хотья бы одно невалидное условие
+         * @return [ValidationResult] (true) - If there are no invalid conditions or there are no conditions at all
+         * @return [ValidationResult] (false) - If at least one invalid condition is found
          * **/
         class Conjunction : Operator {
-            override fun validate(value: Set<ValidationResult>?): ValidationResult {
+            override fun validate(value: Collection<ValidationResult>?): ValidationResult {
                 return conjunction(value)
             }
 
-            private fun conjunction(value: Set<ValidationResult>?): ValidationResult {
+            private fun conjunction(value: Collection<ValidationResult>?): ValidationResult {
                 val invalidResult = value?.find { !it.isValid }
                 return invalidResult ?: ValidationResult.valid()
             }
         }
 
         /**
-         * Оператор дизъюнкции
+         * Disjunction operator
          *
-         * @return [ValidationResult](true) - Если найдется хоть одно валидное условие
-         * @return [ValidationResult](false) - Если все условия невалдные; Условий нет вообще
+         * @return [ValidationResult] (true) - If at least one valid condition is found
+         * @return [ValidationResult] (false) - If all conditions are invalid; There are no conditions at all
          * **/
         class Disjunction : Operator {
-            override fun validate(value: Set<ValidationResult>?): ValidationResult {
+            override fun validate(value: Collection<ValidationResult>?): ValidationResult {
                 return disjunction(value)
             }
 
-            private fun disjunction(value: Set<ValidationResult>?): ValidationResult {
+            private fun disjunction(value: Collection<ValidationResult>?): ValidationResult {
                 val validResult = value?.find { it.isValid }
                 return validResult ?: ValidationResult.invalid(null)
             }
@@ -160,12 +168,12 @@ open class Validator<T>(
 
     companion object {
         /**
-         * Создаёт экземпляр валидатора из по параметрам начального условия
+         * Creates an instance of the [Validator] with initial condition from the parameters
          *
-         * @param description - Описание начального условия
-         * @param isValueValid - Функция проверки начального условия
+         * @param errorMessage - Error message [ValidationResult.errorMessage] of the initial condition
+         * @param isValueValid - Initial condition [Condition.validate] function
          * **/
-        fun <V> create(description: String? = null, isValueValid: (value: V?) -> Boolean): Validator<V?> =
-            Validator(Condition.create(description, isValueValid))
+        fun <V> create(errorMessage: String? = null, isValueValid: (value: V?) -> Boolean): Validator<V?> =
+            Validator(Condition.create(errorMessage, isValueValid))
     }
 }

@@ -2,19 +2,17 @@ package com.egorblagochinnov.validators
 
 import android.content.Context
 import androidx.annotation.StringRes
-import com.egorblagochinnov.validators.core.Condition
-import com.egorblagochinnov.validators.core.ValidationResult
 
 /**
- * Шаблонные классы для создания условий ([Condition])
+ * Template classes for creating conditions ([Condition])
  * */
 class Conditions {
     /**
-     * Проверяет, что значение не null
-     * true - не null
+     * Checks that a value is not null
+     * true - not null
      * false - null
      *
-     * @param description - Описание условия
+     * @param errorText - Error message when value is null
      * **/
     class NotNull<T>(private val errorText: String? = "Value should not be null") : Condition<T?> {
         constructor(context: Context, @StringRes errorText: Int) : this(context.getString(errorText))
@@ -29,9 +27,9 @@ class Conditions {
     }
 
     /**
-     * Необходимое для заполнения текстовое поле
-     * true - Поле не пустое, не null и не состоит из одних пробелов
-     * false - Поле пустое, null или содержит только пробелы
+     * Required text [CharSequence] field
+     * true - The field is not empty, not null and does not consist of only spaces
+     * false - The field is empty, null, or contains only spaces
      * **/
     class RequiredField<T : CharSequence>(private val errorText: String? = "Required field") : Condition<T?> {
         constructor(
@@ -52,7 +50,6 @@ class Conditions {
         val maxLength: Int,
         private val errorText: String? = "Exceeded maximum text length: $maxLength"
     ) : Condition<T?> {
-
         constructor(
             maxLength: Int,
             context: Context

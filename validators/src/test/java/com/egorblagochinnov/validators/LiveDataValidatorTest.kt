@@ -3,8 +3,6 @@ package com.egorblagochinnov.validators
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import com.egorblagochinnov.validators.core.Condition
-import com.egorblagochinnov.validators.core.ValidationResult
 import org.junit.Test
 
 import org.junit.Assert.*
