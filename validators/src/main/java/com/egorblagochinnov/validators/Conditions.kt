@@ -46,7 +46,7 @@ class Conditions {
         }
     }
 
-    class TextMaxLength<T : CharSequence>(
+    class TextMaxLength<T : CharSequence?>(
         val maxLength: Int,
         private val errorText: String? = "Exceeded maximum text length: $maxLength"
     ) : Condition<T?> {
@@ -166,7 +166,7 @@ class Conditions {
     class RegEx<T : CharSequence?>(
         private val regEx: Regex,
         private val errorText: String? = "Text does not match given RegEx"
-    ) : Condition<T> {
+    ) : Condition<T?> {
         override fun validate(value: T?): ValidationResult {
             val text = value ?: ""
             return if (text.matches(regEx)) {

@@ -100,20 +100,6 @@ open class LiveDataValidator<T>(
         return isValid
     }
 
-    /**
-     * Track changes from multiple [sources]
-     *
-     * Listens to many different data sources
-     * When changing any of them, perform the same action from [observer]
-     *
-     * @param sources - Data sources
-     * @param observer - An observer that will subscribe to all sources
-     * **/
-    fun watchOn(vararg sources: LiveData<*>, observer: Observer<Any?>) {
-        sources.forEach {
-            mediator.addSource(it, observer)
-        }
-    }
 
     /**
      * Track changes from multiple [sources]
