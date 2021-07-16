@@ -4,16 +4,18 @@ import android.view.View
 import androidx.annotation.CallSuper
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
 import com.egorblagochinnov.validators.Condition
+import com.egorblagochinnov.validators.LiveDataValidator
 import com.egorblagochinnov.validators.ValidationResult
 import java.lang.ref.WeakReference
 
 /**
- * Для валидации любых данных <D> в любых view <V>
+ * Binds the [condition] validator to the view
  *
- * @param viewRef - Слабая ссылка на <V> (любой класс наследованный от View), который надо валидировать
- * @param condition - Условие, которое и проверяет данные <D>
+ * @param viewRef - Weak reference to <V>, which should react to the validator
+ * @param condition - The condition that checks the data <D>
  * **/
 abstract class ConditionViewBinder<V : View, D>(
     private val viewRef: WeakReference<V>,
@@ -21,33 +23,47 @@ abstract class ConditionViewBinder<V : View, D>(
 ) : LifecycleObserver {
     protected val view: V?; get() = viewRef.get()
 
+    /**
+     * Triggers validation
+     * **/
     fun check() {
         check(getValidationData(view))
     }
 
-    /** Проверяет данные и устанавливает результат валидации на View **/
     protected fun check(data: D?) {
         onValidationResult(view, validate(data))
     }
 
-    /** Проверяет поле **/
+    /**
+     * Triggers validation and return result as Boolean (valid or invalid)
+     * **/
     fun isValid(): Boolean {
         return validate().isValid
     }
 
+    /**
+     * Triggers validation with current data in view and return [ValidationResult]
+     * **/
     fun validate(): ValidationResult {
         return validate(getValidationData(view))
     }
 
+    /**
+     * Triggers validation with [data] and return [ValidationResult]
+     * **/
     fun validate(data: D?): ValidationResult {
         return condition.validate(data)
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    protected fun onStart() {
+    private fun onStart() {
         attach()
     }
 
+    /**
+     * Indicates that [ConditionViewBinder] is attached to lifecycle
+     *
+     * **/
     open fun attach() {
 
     }

@@ -9,11 +9,11 @@ import com.egorblagochinnov.validators.ValidationResult
 import java.lang.ref.WeakReference
 
 /**
- * Слушает валидатор с данными любого типа <D>
- * Когда срабатывает валидатор - сообщает о результате проверки
+ * Listens to a validator with data of any type <D>
+ * When the validator is triggered - informs about the result of the check
  *
- * @param viewRef слабая ссылка на view любого типа (TextView, ImageView, FrameLayout и другие)
- * @param validator LiveDataValidator валидатор, по которому проверяется view
+ * @param viewRef a weak reference to a view of any type (TextView, ImageView, FrameLayout and others)
+ * @param validator LiveDataValidator validator against which the view is validated
  * **/
 abstract class LiveDataValidatorViewBinder<V : View, D>(
     viewRef: WeakReference<V>,
@@ -30,11 +30,13 @@ abstract class LiveDataValidatorViewBinder<V : View, D>(
 
     fun attach(lifecycleOwner: LifecycleOwner) {
         lifecycleOwner.lifecycle.addObserver(this)
+        validator.removeObserver(this)
         validator.observe(lifecycleOwner, this)
     }
 
     override fun attach() {
         super.attach()
+        validator.removeObserver(this)
         validator.observeForever(this)
     }
 
@@ -44,7 +46,7 @@ abstract class LiveDataValidatorViewBinder<V : View, D>(
     }
 
     /**
-     * При изменении валидатора приводит поле в соответствующее состояние
+     * When changing the validator, sets the field to the appropriate state
      * **/
     override fun onChanged(t: ValidationResult?) {
         onValidationResult(t)
