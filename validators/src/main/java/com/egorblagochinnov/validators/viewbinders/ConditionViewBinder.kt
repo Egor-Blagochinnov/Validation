@@ -4,10 +4,8 @@ import android.view.View
 import androidx.annotation.CallSuper
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
 import com.egorblagochinnov.validators.Condition
-import com.egorblagochinnov.validators.LiveDataValidator
 import com.egorblagochinnov.validators.ValidationResult
 import java.lang.ref.WeakReference
 
@@ -62,7 +60,6 @@ abstract class ConditionViewBinder<V : View, D>(
 
     /**
      * Indicates that [ConditionViewBinder] is attached to lifecycle
-     *
      * **/
     open fun attach() {
 
@@ -79,28 +76,26 @@ abstract class ConditionViewBinder<V : View, D>(
     }
 
     /**
-     * Сообщает о результате проверки поля
-     * Просто вызывает метод onValidationResult(view: V?, result: ValidationResult?)
-     * и подставляет туда view
+     * Dispatch the result of validation to view [V]
      *
-     * @param result - результат проверки
+     * @param result - result of validation
      * **/
     protected fun onValidationResult(result: ValidationResult?) {
         onValidationResult(view, result)
     }
 
     /**
-     * Возвразает из view данные которые нужно проверить по валидатору
+     * Returns data from the view that needs to be checked against the validator
      *
-     * @return D - Данные для проверки валидатором
+     * @return D - Data to be checked by the validator
      * **/
     abstract fun getValidationData(view: V?): D?
 
     /**
-     * Сообщает о результате проверки поля
+     * Reports the result of field validation
      *
-     * @param view - поле, котрое проверяется
-     * @param result - результат проверки
+     * @param view - view being checked
+     * @param result - result of validation
      * **/
     protected abstract fun onValidationResult(view: V?, result: ValidationResult?)
 }
