@@ -5,10 +5,10 @@ import com.egorblagochinnov.validators.Validator
 import java.lang.ref.WeakReference
 
 /**
- * Для валидации любых данных <D> в любых view <V>
+ * [ConditionViewBinder] to validate any data [D] in any view [V] through [validator]
  *
- * @param viewRef слабая ссылка на view любого типа (TextView, ImageView, FrameLayout и другие)
- * @param validator [Validator] валидатор, по которому проверяется view
+ * @param viewRef - A weak reference to a view of any type (TextView, ImageView, FrameLayout and others)
+ * @param validator - [Validator] the validator against which the view is validated
  * **/
 abstract class ValidatorViewBinder<V : View, D, VL : Validator<D?>>(
     viewRef: WeakReference<V>,
@@ -22,9 +22,6 @@ abstract class ValidatorViewBinder<V : View, D, VL : Validator<D?>>(
         activate()
     }
 
-    /**
-     * Подписывается на валидатор и на условия валидатора
-     * **/
     private fun activate() {
         validator.addConditionsChangedListener(this)
         validator.addOperatorChangedListener(this)
@@ -35,9 +32,6 @@ abstract class ValidatorViewBinder<V : View, D, VL : Validator<D?>>(
         deactivate()
     }
 
-    /**
-     * Отписывается от валидатора и от условий валидатора
-     * **/
     private fun deactivate() {
         validator.removeConditionsChangedListener(this)
         validator.removeOperatorChangedListener(this)
