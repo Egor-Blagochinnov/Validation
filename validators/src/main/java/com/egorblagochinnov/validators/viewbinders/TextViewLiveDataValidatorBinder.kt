@@ -14,11 +14,11 @@ import com.google.android.material.textfield.TextInputLayout
 import java.lang.ref.WeakReference
 
 /**
- * Слушатель валидатора для текстовых полей
- * При этом валидатор может валидировать данные любого типа (double, например)
+ * Validator listener for text fields
+ * In this case, the validator can validate data of any type (double, for example)
  *
- * @param viewRef слабая ссылка на TextView
- * @param validator валидатор, по которому проверяется view
+ * @param viewRef - Weak reference to TextView
+ * @param validator - The [validator] against which the view is validated
  * **/
 class TextViewLiveDataValidatorBinder<D>(
     viewRef: WeakReference<TextView>,
@@ -26,23 +26,22 @@ class TextViewLiveDataValidatorBinder<D>(
 ) : LiveDataValidatorViewBinder<TextView, D>(viewRef, validator), View.OnFocusChangeListener {
 
     /**
-     * Контейнер TextInputLayout в котором находится EditText (или TextView)
+     * The [TextInputLayout] container that contains the [EditText] (or TextView)
      * **/
     private val viewParent: TextInputLayout? by lazy { view?.getParentInputLayout() }
 
     /**
-     * Сохраненный текст подсказки. Нужен для того чтобы после отображения ошибки можно было вернуть на место такст подсказки
+     * Saved tooltip text.
+     * It is necessary so that after the error is displayed, it is possible to return to the place of the helper text.
      * **/
     private var helperText: CharSequence? = null
 
-    /**
-     * Максимальныя длина
-     * **/
     private var maxLength: Int? = null
 
     /**
-     * Взаимодействие с полем. Устанавливается в true при первой устновке фокуса на поле.
-     * Нужен для того чтобы скрывать ошибки, пока пользователь не тыкнет на поле
+     * Interaction with the field.
+     * Set to true the first time the field is focused.
+     * Needed in order to hide errors until the user click on the field
      * **/
     private var isInteracted: Boolean = false
 
@@ -120,7 +119,7 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * Слушает изменения фокуса [view]
+     * Listens for focus changes [view]
      * @see onFocusChange
      * **/
     fun setAsFocusListener() {
@@ -128,9 +127,9 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * Принудительная проверка
-     * Переводит флаг isInteracted в true,
-     * чтобы не скрывать ошибки независимо от того, взаимодействовал пользователь с полем или нет
+     * Forced check
+     * Sets the [isInteracted] flag to true,
+     * so as not to hide errors regardless of whether the user interacted with the field or not
      * **/
     fun forceCheck() {
         isInteracted = true
@@ -146,8 +145,9 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * Сработал валидатор
-     * Если валидатор вернул ошибку (false) но пользователь не взаимодействовал с полем (isInteracted = false) - игнорируем ошибку
+     * Validator triggered
+     *
+     * @see checkViewAppearance
      * **/
     override fun onValidationResult(view: TextView?, result: ValidationResult?) {
         checkViewAppearance(view, result)
@@ -157,6 +157,9 @@ class TextViewLiveDataValidatorBinder<D>(
         checkViewAppearance(view, validator.state.value)
     }
 
+    /**
+     * If the validator returned an error (false) but the user did not interact with the field ([isInteracted] = false) - ignore the error
+     * **/
     private fun checkViewAppearance(view: TextView?, result: ValidationResult?) {
         if (result?.isValid == false && !isInteracted) {
             return
@@ -176,9 +179,9 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * Текст валидный
-     * Удаляем ошибку
-     * Рисуем галочку
+     * The text is valid
+     * Remove the error
+     * Draw a check mark [successIcon]
      * **/
     private fun setViewAsValid(view: TextView?) {
         view?.removeError()
@@ -186,9 +189,9 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * Текст невалидный
-     * Удаляем галочку
-     * Рисуем ошибку
+     * The text is invalid
+     * Remove the check mark
+     * Draw the error [errorIcon]
      * **/
     private fun setViewAsInvalid(view: TextView?, errorText: CharSequence?) {
         view?.removeSuccessIcon()
@@ -199,9 +202,9 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * Вид по - умолчанию. Либо если валидатор вернул null
-     * Удаляем ошибку
-     * Удаляем галочку
+     * Default view. Or if the validator returned null
+     * Remove the error
+     * Remove the check mark
      * **/
     private fun setViewAsDefault(view: TextView?) {
         view?.removeError()
@@ -209,17 +212,17 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * При изменении фокуса
+     * When focus changes
      *
-     * Если установлен фокус:
-     *   isInteracted = true
-     *   Если на поле был установлен helperText - показывает этот helperText
-     *   Включает счетчик максимальной длины текста если maxLength != null
+     * If focus is set:
+     * - [isInteracted] = true
+     * - If helperText was set on the field - shows this helperText
+     * - Turns on counter for maximum text length if maxLength! = Null
      *
-     * Если фокус снят:
-     *   Скрываем текст подсказки
-     *   Проверяем максимальную длину поля
-     *   Проверяе полу по всем валидаторам
+     * If focus is removed:
+     * - Hide the hint text
+     * - Checking the maximum field length
+     * - Check gender for all validators
      * **/
     override fun onFocusChange(v: View?, hasFocus: Boolean) {
         if (hasFocus) {
@@ -233,7 +236,7 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * Находит валидатор максимальной длины и выставляет по нему максимальную длину для счетчика символов
+     * Finds the maximum length validator and sets the maximum length for the character counter based on it
      * **/
     private fun checkForMaxLengthValidator() {
         getMaxLength()?.let {
@@ -249,8 +252,8 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * Находит максимальную длину для поля
-     * Ищет условие типа Condition.TextMaxLength и возвращает его maxLength
+     * Finds the maximum length for a field
+     * Looks for a condition of type [Conditions.TextMaxLength] and returns its maxLength
      * **/
     private fun getMaxLength(): Int? {
         val maxLengthCondition = validator
@@ -260,12 +263,6 @@ class TextViewLiveDataValidatorBinder<D>(
         return maxLengthCondition?.maxLength
     }
 
-    /**
-     * Установлен фокус
-     *
-     * Если на поле был установлен helperText - показывает этот helperText
-     * Включает счетчик максимальной длины текста если maxLength != null
-     * **/
     private fun onFocusSet() {
         if (!this.helperText.isNullOrBlank()) {
             viewParent?.helperText = this.helperText
@@ -278,9 +275,9 @@ class TextViewLiveDataValidatorBinder<D>(
     }
 
     /**
-     * Скрывает текст подсказки
-     * Сохраняет текст подсказки потому что isHelperTextEnabled = false удаляет helperText из поля и потом helperText не вернуть.
-     * Поэтому значение helperText сохраняется, чтобы потом поставить его обратно
+     * Hides the tooltip text
+     * Saves the hint text because isHelperTextEnabled = false removes helperText from the field and then helperText will not be returned.
+     * Therefore, the [helperText] value is saved so that you can put it back later
      * **/
     private fun hideHelperText() {
         val viewParent = view?.getParentInputLayout()
@@ -289,9 +286,6 @@ class TextViewLiveDataValidatorBinder<D>(
         viewParent?.helperText = null
     }
 
-    /**
-     * Проверка по счетчику максимальной длины
-     * **/
     private fun checkMaxLength() {
         maxLength?.let {
             val textLength = view?.text?.length ?: 0
