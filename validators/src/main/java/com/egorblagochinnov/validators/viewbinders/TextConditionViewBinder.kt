@@ -9,16 +9,16 @@ import com.egorblagochinnov.validators.*
 import java.lang.ref.WeakReference
 
 /**
- * Слушатель для валидации текста в TextView (и его наследниках)
- * После каждого изменения текста в текстовом поле, проверяет текст по валидатору
- * В зависимости от результата валидации - устанавливает на поле ошибку
+ * [ConditionViewBinder] for text validation in the TextView (and its descendants)
+ * After each change of the text in the text field, checks the text against the validator
+ * Depending on the result of validation - sets an error on the field
  *
- * @param textViewRef - слабая ссылка на TextView, который надо валидировать
- * @param validator - валидатор, который и проверяет текст
+ * @param textViewRef - Weak reference to the TextView to be validated
+ * @param validator - Validator that validates the text
  * **/
 class TextConditionViewBinder<V : TextView>(
-        textViewRef: WeakReference<V>,
-        private val validator: Condition<CharSequence?>
+    textViewRef: WeakReference<V>,
+    private val validator: Condition<CharSequence?>
 ) : ConditionViewBinder<V, CharSequence?>(textViewRef, validator), TextWatcher {
     private val textView = textViewRef.get()
 
@@ -38,12 +38,10 @@ class TextConditionViewBinder<V : TextView>(
         ContextCompat.getColor(it, R.color.design_default_color_error)
     }
 
-    /** Добавляет себя слушателем к текстовому полю **/
     fun activate() {
         textView?.addTextChangedListener(this)
     }
 
-    /** Удаляет себя из слушателей текстового поля **/
     fun deactivate() {
         textView?.removeTextChangedListener(this)
     }
