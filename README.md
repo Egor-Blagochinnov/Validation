@@ -1,5 +1,24 @@
 # Validation
 
+
+# Установка
+
+```
+allprojects {
+    repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
+}
+```
+
+
+```
+dependencies {
+    implementation 'com.github.Egor-Blagochinnov:Validation:v1.0.0-alpha2'
+}
+```
+
 [TOC]
 
 # Проблематика
